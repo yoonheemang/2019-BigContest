@@ -1,0 +1,34 @@
+train24=read.csv("C:/Users/user/Desktop/빅콘/2019빅콘테스트_퓨처스리그/AFSNT.csv")
+head(train24)
+summary(train24)
+colSums(is.na(train24)) ##결측값 확인 - 없다고 나오는데 공백으로 채워진거 있음
+
+
+##지연된 데이터만 분리
+del=train24[which(train24$DLY=="Y"),]
+
+##날짜형식으로 묶어서 지연시간 계산
+date_del<-paste0(del$SDT_YY,'-',del$SDT_MM,'-',del$SDT_DD)
+a_del<-strptime(paste(date_del,del$ATT),"%Y-%m-%d %H:%M")
+s_del<-strptime(paste(date_del,del$STT),"%Y-%m-%d %H:%M")
+
+#지연된 데이터에 지연 시간 변수 추가
+del$del_time=as.numeric((a_del-s_del)/60) 
+write.csv(del,"C:/Users/user/Desktop/빅콘/delay.csv",row.names=F)
+
+
+###########[[[[확인]]]] 지연 데이터에 (ATT)결측값 있음!!!!!!!!
+nana=which(is.na(del$del_time))
+nana
+del[nana,]
+colSums(is.na(del[-nana,]))
+
+########[[[[확인]]]] 지연 되었는데 지연시간 30분보다 작은거 있음!!!!!!!!
+sum(del[-nana,]$del_time<=30)
+
+
+
+##일자별 지연횟수 데이터 내보내기
+data.frame(table(date_del))
+delay_freq=data.frame(table(date_del))
+write.csv(delay_freq,"C:/Users/user/Desktop/빅콘/delay_freq.csv",row.names=F)

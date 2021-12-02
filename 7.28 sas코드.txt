@@ -1,0 +1,46 @@
+symbol1 i=spline v=none h=1 l=1 c=black;
+
+data delay;
+    infile 'C:\Users\a\Desktop\공모전\빅콘테스트\데이터\delay확률추가.csv' dsd firstobs=2;
+    input data_del$ freq prob a b; t+1;run;
+proc print data=delay;
+run;
+ proc gplot data=delay_p;
+    plot D*t=1 /href=13 25;  run;
+
+data a;
+set delay;
+lnp=log(prob);
+dif12=dif12(lnp);
+dif1_12=dif(dif12);
+run;
+
+proc print data=a;
+run;
+proc gplot data=a;
+   plot dif12*t=1 / frame;
+ run;
+proc gplot data=a;
+   plot lnd*t=1 / frame;
+ run;
+
+proc arima data=a;
+   identify var=lnp nlag=36;run;
+forecast lead=6 noprint out=res;
+run;
+
+proc print data=res;
+run;
+
+proc univariate data=a normal plot;
+run;
+
+/*이분산성 검정*/
+%boxcoxar(delay,prob,nlambda=10); /*lambda가 0.05일 때 AIC,SBC가 제일 작으므로 제곱근변환.*/
+run;
+
+/*차분차수 결정*/
+%dftest (a,lnp, dlag=7,outstat=dfout); /*p-value=0.03*/
+ proc print data=dfout;
+ run;
+
